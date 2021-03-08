@@ -1,0 +1,134 @@
+
+--- 
+- 
+  become: true
+  name: "Make an host entry on each machine in /etc/hosts"
+  template: 
+    dest: /etc/hosts
+    src: /root/ansible-ldap/templates/hosts
+- 
+  become: true
+  name: "Install OpenLDAP Packages"
+  vars: 
+    packages: 
+      - openldap
+      - compat-openldap
+      - openldap-clients
+      - openldap-servers
+      - openldap-servers-sql
+      - openldap-devel
+      - openldap-clients
+      - nss-pam-ldapd
+  yum: 
+    name: "{{ packages }}"
+- 
+  name: "Start the LDAP service and enable it for the auto start of service on system boot"
+  systemd: 
+    name: slapd
+    state: started
+- 
+  name: "Setup LDAP admin password"
+  register: root_password
+  set_fact: 
+   LDPPASSWORD: Admin
+   USERPASSWORD: User
+-
+  name: "Setup LDAP admin "
+  shell: "slappasswd -s {{ LDPPASSWORD }}"
+- 
+  become: true
+  name: "Configure OpenLDAP db.ldif file"
+  template: 
+    dest: ~/
+    src: /root/ansible-ldap/templates/db.ldif
+- 
+  become: true
+  command: "ldapmodify -Y EXTERNAL  -H ldapi:/// -f db.ldif"
+  name: "Send the configuration db.ldif to the LDAP server"
+- 
+  become: true
+  name: "Configure OpenLDAP monitor.ldif file"
+  template: 
+    dest: ~/
+    src: /root/ansible-ldap/templates/monitor.ldif
+- 
+  become: true
+  command: "ldapmodify -Y EXTERNAL  -H ldapi:/// -f monitor.ldif"
+  name: "Send the configuration monitor.ldif to the LDAP server"
+- 
+  become: true
+  command: "cp /usr/share/openldap-servers/DB_CONFIG.example /var/lib/ldap/DB_CONFIG"
+  name: "Set up LDAP database"
+- 
+  become: true
+  file: dest="/var/lib/ldap/*" owner=ldap group=ldap mode=0775 recurse=yes
+  
+#  command: "chown ldap:ldap /var/lib/ldap/*"
+  name: "Chage owner of teh files copied"
+- 
+  become: true
+  command: "{{ item }}"
+  name: "Add the cosine and nis LDAP schemas"
+  with_items: 
+    - "ldapadd -Y EXTERNAL -H ldapi:/// -f /etc/openldap/schema/cosine.ldif"
+    - "ldapadd -Y EXTERNAL -H ldapi:/// -f /etc/openldap/schema/nis.ldif"
+    - "ldapadd -Y EXTERNAL -H ldapi:/// -f /etc/openldap/schema/inetorgperson.ldif"
+- 
+  become: true
+  name: "Configure OpenLDAP base.ldif file"
+  template: 
+    dest: ~/
+    src: /root/ansible-ldap/templates/base.ldif
+
+- 
+  become: true
+  expect: 
+    command: "ldapadd -x -W -D \"cn=ldapadm,dc=dqdev,dc=com\" -f base.ldif"
+    responses: 
+      (?i)password: "{{ LDPPASSWORD }}"
+  name: "Send the configuration base.ldif to the LDAP server"
+- 
+  become: true
+  name: "Create LDAP user"
+  template: 
+    dest: ~/
+    src: /root/ansible-ldap/templates/test.ldif
+- 
+  become: true
+  expect: 
+    command: "ldapadd -x -W -D \"cn=ldapadm,dc=dqdev,dc=com\" -f test.ldif"
+    responses: 
+      (?i)password: "{{ LDPPASSWORD }}"
+  name: "Create a new user called test in OpenLDAP directory"
+- 
+  become: true
+  expect:
+    command: "ldappasswd -s {{ USERPASSWORD }} -W -D \"cn=ldapadm,dc=dqdev,dc=com\" -x \"uid=test,ou=People,dc=dqdev,dc=com\""
+    responses:
+      (?i)password: "{{ LDPPASSWORD }}"
+  name: "Assign password to User"
+#- 
+#  become: true
+#  command: "{{ item }}"
+#  name: "Add the LDAP service to the firewall (TCP 389)"
+#  with_items: 
+#    - "firewall-cmd --permanent --add-service=ldap"
+#    - "firewall-cmd --reload"
+#- 
+#  name: "Look for local4.* /var/log/ldap.log"
+#  register: register_grep
+#  shell: "grep \"^local4\" /etc/rsyslog.conf"
+#- 
+#  become: true
+#  lineinfile: 
+#    create: true
+#    dest: /etc/rsyslog.conf
+#    line: "local4.* /var/log/ldap.log"
+#    state: present
+#    when: "test_grep.stdout != \"\""
+#  name: "Enable LDAP logging"
+#- 
+#  become: true
+#  name: "Restart the rsyslog service"
+#  raw: "systemctl restart rsyslog"
+

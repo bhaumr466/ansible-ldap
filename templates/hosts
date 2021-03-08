@@ -1,0 +1,7 @@
+127.0.0.1   localhost localhost.localdomain localhost4 localhost4.localdomain4
+::1         localhost localhost.localdomain localhost6 localhost6.localdomain6
+#To be decided after server deploy current host file is kept outside template
+#10.0.4.78 sg1-dev-ldap-01.dq.com  sg1-dev-ldap-01	    	    
+
+
+

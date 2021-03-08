@@ -1,0 +1,17 @@
+dn: uid=test,ou=People,dc=dqdev,dc=com
+objectClass: top
+objectClass: account
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: test
+uid: test
+uidNumber: 9999
+gidNumber: 100
+homeDirectory: /home/test
+loginShell: /bin/bash
+gecos: test [Sample (at)  test account]
+userPassword: {crypt}x
+shadowLastChange: 17058
+shadowMin: 0
+shadowMax: 99999
+shadowWarning: 7

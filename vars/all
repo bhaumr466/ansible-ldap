@@ -1,0 +1,4 @@
+#Future incorporation with Terraform module for the server IP
+LDAPSERVER: 192.168.207.242
+LDPPASSWORD: qwertyuboi!
+USERPASSWORD: cartrack123!

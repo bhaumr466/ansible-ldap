@@ -1,0 +1,17 @@
+dn: dc=dqdev,dc=com
+dc:  dqdev
+objectClass: top
+objectClass: domain
+
+dn: cn=ldapadm ,dc=dqdev,dc=com
+objectClass: organizationalRole
+cn: ldapadm
+description: LDAP Manager
+
+dn: ou=People,dc=dqdev,dc=com
+objectClass: organizationalUnit
+ou: People
+
+dn: ou=Group,dc=dqdev,dc=com
+objectClass: organizationalUnit
+ou: Group

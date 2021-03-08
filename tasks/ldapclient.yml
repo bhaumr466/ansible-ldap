@@ -1,0 +1,17 @@
+---
+-
+  become: true
+  name: host file
+  command: "hostname -I"
+  register: host_client
+-
+  become: true
+  name:  Add the client machine to LDAP server for single sign-on
+  command: "authconfig --enableldap --enableldapauth --ldapserver={{ host_client.stdout }} --ldapbasedn=\"dc=dqdev,dc=com\" --enablemkhomedir --update"
+ 
+-
+  become: true
+  name: Restart the LDAP client service
+  command: "systemctl restart  nslcd" 
+
+  

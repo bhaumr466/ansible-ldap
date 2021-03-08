@@ -1,0 +1,14 @@
+dn: olcDatabase={2}hdb,cn=config
+changetype: modify
+replace: olcSuffix
+olcSuffix: dc=dqdev,dc=com
+
+dn: olcDatabase={2}hdb,cn=config
+changetype: modify
+replace: olcRootDN
+olcRootDN: cn=ldapadm,dc=dqdev,dc=com
+
+dn: olcDatabase={2}hdb,cn=config
+changetype: modify
+replace: olcRootPW
+olcRootPW: {{ LDPPASSWORD }}
